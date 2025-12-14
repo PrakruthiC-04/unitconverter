@@ -1,0 +1,3 @@
+echo "converter_exe.exe" > .gitignore
+echo "input_txt" >> .gitignore
+echo "output_txt" >> .gitignore
