@@ -2,6 +2,7 @@ import subprocess
 import tkinter as tk
 from tkinter import ttk
 import os
+import time
 
 conversion_codes={
     "1-Centimetre to Metre":1,
@@ -32,21 +33,36 @@ def perform_conversion_via_files(value,conversion_code):
         return f"Python I/O Error: {e}"
     
     try:
-        subprocess.run(['./converter_exe'], check=True, capture_output=True)
-    except subprocess.CalledProcessError as e:
-        return f"C Runtime Error: {e.stderr.decode()}"
+        result = subprocess.run(['./converter_exe.exe'], check=False, capture_output=True, timeout=5)
+        if result.returncode != 0:
+            stderr_output = result.stderr.decode().strip()
+            return f"C Runtime Error (Code {result.returncode}): {stderr_output}"
+
+    except subprocess.TimeoutExpired:
+        return "C Runtime Error: Program timed out."
     except FileNotFoundError:
-        return "Error: converter_exe not found."
+        return "Error: converter_exe.exe not found."
 
     try:
         with open("output_txt", "r") as f:
             result = f.read().strip()
-            os.remove("input_txt")
-            os.remove("output_txt")
-            
-            return result
+        os.remove("input_txt")
+        max_retries = 10
+        for i in range(max_retries):
+            try:
+                os.remove("output_txt")
+                break 
+            except PermissionError:
+                if i < max_retries - 1:
+                    time.sleep(0.05) 
+                else:
+                    raise 
+
+        return result
     except FileNotFoundError:
         return "Error: C program failed to produce output_txt."
+    except PermissionError as e:
+        return f"Final File Lock Error: {e}"
 
 class ConverterApp:
     def __init__(self, root):

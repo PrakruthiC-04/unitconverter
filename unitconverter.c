@@ -13,7 +13,7 @@ float hr_to_sec(float h){return h*3600;}
 float hr_to_day(float h){return h/24;}
 float day_to_hr(float d){return d*24;}
 float c_to_f(float c){return (c*1.8)+32;}
-float f_to_c(float f){return (f-32)*(5/9);}
+float f_to_c(float f){return (f-32)*(5.0/9.0);}
 float c_to_k(float c){return c+273.15;}
 float k_to_c(float k){return k-273.15;}
 float l_to_ml(float l){return l*1000;}
@@ -21,18 +21,23 @@ float ml_to_l(float ml){return ml/1000;}
 
 int main()
 {
-    FILE *inputFile, *outputFile;
+    FILE *inputFile = NULL; 
+    FILE *outputFile = NULL;
+    
     int conversion_choice;
     float input_value;
-    float result=0.0;
+    float result = 0.0;
     
-    inputFile=fopen("input_txt","r");
-    if (inputFile==NULL)
+    inputFile = fopen("input_txt","r");
+    if (inputFile == NULL)
     {
         return 1;
     }
-    fscanf(inputFile,"%d %f",&conversion_choice,&input_value);
-    fclose(inputFile);
+    
+    if (fscanf(inputFile,"%d %f",&conversion_choice,&input_value) != 2)
+    {
+        goto cleanup; 
+    }
 
     switch (conversion_choice)
     {
@@ -110,16 +115,30 @@ int main()
 
         default:
         result=-999.99;
+        break;
     }
 
-    outputFile=fopen("output_txt","w");
-    if (outputFile==NULL)
+    outputFile = fopen("output_txt","w");
+    if (outputFile == NULL)
     {
-        return 2;
+        goto cleanup; 
     }
 
     fprintf(outputFile,"%.2f",result);
-    fclose(outputFile);
+
+    goto cleanup; 
+
+cleanup:
+    if (outputFile != NULL)
+    {
+        fclose(outputFile);
+    }
+    
+    if (inputFile != NULL)
+    {
+        fclose(inputFile);
+    }
+    
     return 0;
 }
 
